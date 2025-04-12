@@ -3,9 +3,11 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.7.5
 // @description  Adds a sort feature
-// @author       Kervin
+// @author       @itskerv
 // @match        https://pnd.leasehackr.com/*
 // @grant        none
+// @downloadURL  https://raw.githubusercontent.com/itskerv/LeaseHackr/main/Leasehackr%20PND%20Sort%20Feature.user.js
+// @updateURL    https://raw.githubusercontent.com/itskerv/LeaseHackr/main/Leasehackr%20PND%20Sort%20Feature.user.js
 // ==/UserScript==
 
 (function() {
