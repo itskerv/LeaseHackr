@@ -23,6 +23,8 @@ def create_tables():
     import app.models  # noqa: F401 — ensures all models are registered
     Base.metadata.create_all(bind=engine)
     _migrate_add_column("lease_programs", "base_msrp", "REAL")
+    _migrate_add_column("lease_programs", "costco_cash", "REAL")
+    _migrate_add_column("lease_programs", "military_cash", "REAL")
 
 
 def _migrate_add_column(table: str, column: str, col_type: str) -> None:

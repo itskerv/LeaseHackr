@@ -42,6 +42,10 @@ class LeaseSnapshot(BaseModel):
     money_factor: Optional[float]
     apr_equivalent: Optional[float]        # money_factor * 2400
     lease_cash: Optional[float]
+    loyalty_cash: Optional[float]
+    conquest_cash: Optional[float]
+    military_cash: Optional[float]
+    costco_cash: Optional[float]
     total_incentives: Optional[float]
     term: Optional[int]
     mileage: Optional[int]
@@ -134,7 +138,13 @@ def list_scores(
 
         lease_snap = None
         if lp:
-            total = (lp.lease_cash or 0) + (lp.loyalty_cash or 0) + (lp.conquest_cash or 0)
+            total = (
+                (lp.lease_cash or 0)
+                + (lp.loyalty_cash or 0)
+                + (lp.conquest_cash or 0)
+                + (lp.military_cash or 0)
+                + (lp.costco_cash or 0)
+            )
             apr = round((lp.money_factor or 0) * 2400, 2) if lp.money_factor else None
             est_pretax = _calc_monthly(lp, with_tax=False)
             est_with_tax = _calc_monthly(lp, with_tax=True)
@@ -167,6 +177,10 @@ def list_scores(
                 money_factor=lp.money_factor,
                 apr_equivalent=apr,
                 lease_cash=lp.lease_cash,
+                loyalty_cash=lp.loyalty_cash,
+                conquest_cash=lp.conquest_cash,
+                military_cash=lp.military_cash,
+                costco_cash=lp.costco_cash,
                 total_incentives=total,
                 term=lp.term,
                 mileage=lp.mileage,

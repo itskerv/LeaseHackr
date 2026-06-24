@@ -115,6 +115,7 @@ def compute_hackability_score(vehicle_id: int, db: Session) -> "HackabilityScore
             + (lp.conquest_cash or 0)
             + (lp.military_cash or 0)
             + (lp.college_cash or 0)
+            + (lp.costco_cash or 0)
         )
 
     r_score = _residual_score(lp.residual_percent if lp else None)
@@ -199,7 +200,10 @@ def _build_explanation(
     if lp and lp.residual_percent:
         lines.append(f"Residual {lp.residual_percent:.0f}% (36mo/10k) — {'above' if lp.residual_percent >= 56 else 'near'} market average.")
     if lp:
-        total = (lp.lease_cash or 0) + (lp.loyalty_cash or 0) + (lp.conquest_cash or 0)
+        total = (
+            (lp.lease_cash or 0) + (lp.loyalty_cash or 0) + (lp.conquest_cash or 0)
+            + (lp.military_cash or 0) + (lp.college_cash or 0) + (lp.costco_cash or 0)
+        )
         if total > 0:
             lines.append(f"${total:,.0f} in combined incentives available.")
         if lp.money_factor and lp.money_factor < 0.001:
