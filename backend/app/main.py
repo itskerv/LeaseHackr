@@ -92,7 +92,10 @@ try:
     import os
     _frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
     _frontend_dir = os.path.abspath(_frontend_dir)
+    _vendor_dir = os.path.join(_frontend_dir, "vendor")
     if os.path.isdir(_frontend_dir):
+        if os.path.isdir(_vendor_dir):
+            app.mount("/vendor", StaticFiles(directory=_vendor_dir), name="vendor")
         app.mount("/static", StaticFiles(directory=_frontend_dir), name="static")
 
         @app.get("/", include_in_schema=False)
