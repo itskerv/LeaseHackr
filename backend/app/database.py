@@ -25,13 +25,15 @@ def create_tables():
     _migrate_add_column("lease_programs", "base_msrp", "REAL")
     _migrate_add_column("lease_programs", "costco_cash", "REAL")
     _migrate_add_column("lease_programs", "military_cash", "REAL")
+    _migrate_add_column("lease_programs", "college_cash", "REAL")
 
 
 def _migrate_add_column(table: str, column: str, col_type: str) -> None:
     """Non-destructive: adds a column if it doesn't already exist (SQLite safe)."""
+    import sqlalchemy.exc
     with engine.connect() as conn:
         try:
             conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
             conn.commit()
-        except Exception:
+        except sqlalchemy.exc.OperationalError:
             pass  # column already present

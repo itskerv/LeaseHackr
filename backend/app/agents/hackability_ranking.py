@@ -85,9 +85,10 @@ def compute_hackability_score(vehicle_id: int, db: Session) -> "HackabilityScore
         .order_by(LeaseProgram.program_year.desc(), LeaseProgram.program_month.desc())
         .all()
     )
-    lp: Optional[LeaseProgram] = next(
-        (p for p in all_programs if p.term == 36),
-        all_programs[0] if all_programs else None,
+    by_term = {p.term: p for p in reversed(all_programs)}  # reversed keeps latest per term
+    lp: Optional[LeaseProgram] = (
+        by_term.get(36) or by_term.get(24) or by_term.get(48)
+        or by_term.get(18) or (all_programs[0] if all_programs else None)
     )
 
     # Fetch latest inventory snapshot

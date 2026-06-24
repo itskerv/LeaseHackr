@@ -627,9 +627,13 @@ def run_seed(db: Session) -> None:
                 )
                 db.add(lp)
             else:
-                # Update incentive fields in case they've been added or changed
-                for field in ("lease_cash", "loyalty_cash", "conquest_cash",
-                              "military_cash", "costco_cash", "college_cash"):
+                # Update all program-defining fields so re-seeding refreshes stale data
+                for field in (
+                    "residual_percent", "money_factor", "base_msrp", "mileage",
+                    "lease_cash", "loyalty_cash", "conquest_cash",
+                    "military_cash", "costco_cash", "college_cash",
+                    "source", "regional_notes",
+                ):
                     if field in full_data:
                         setattr(existing_lp, field, full_data[field])
 

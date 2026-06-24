@@ -46,6 +46,7 @@ class LeaseSnapshot(BaseModel):
     conquest_cash: Optional[float]
     military_cash: Optional[float]
     costco_cash: Optional[float]
+    college_cash: Optional[float]
     total_incentives: Optional[float]
     term: Optional[int]
     mileage: Optional[int]
@@ -133,8 +134,14 @@ def list_scores(
             if prog.term not in latest_by_term:
                 latest_by_term[prog.term] = prog
 
-        # Canonical program: prefer 36mo
-        lp = latest_by_term.get(36) or (all_lps[0] if all_lps else None)
+        # Canonical program: prefer 36mo → 24mo → 48mo → 18mo → first available
+        lp = (
+            latest_by_term.get(36)
+            or latest_by_term.get(24)
+            or latest_by_term.get(48)
+            or latest_by_term.get(18)
+            or (all_lps[0] if all_lps else None)
+        )
 
         lease_snap = None
         if lp:
@@ -144,6 +151,7 @@ def list_scores(
                 + (lp.conquest_cash or 0)
                 + (lp.military_cash or 0)
                 + (lp.costco_cash or 0)
+                + (lp.college_cash or 0)
             )
             apr = round((lp.money_factor or 0) * 2400, 2) if lp.money_factor else None
             est_pretax = _calc_monthly(lp, with_tax=False)
@@ -181,6 +189,7 @@ def list_scores(
                 conquest_cash=lp.conquest_cash,
                 military_cash=lp.military_cash,
                 costco_cash=lp.costco_cash,
+                college_cash=lp.college_cash,
                 total_incentives=total,
                 term=lp.term,
                 mileage=lp.mileage,
