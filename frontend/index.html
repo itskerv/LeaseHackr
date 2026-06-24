@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lease Deal Discovery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .score-bar-fill { transition: width 0.6s ease; }
+    .card-enter { animation: fadeSlideIn 0.3s ease forwards; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .rank-badge { font-variant-numeric: tabular-nums; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased" x-data="dashboard()" x-init="init()" x-cloak>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">
+          <span class="text-emerald-400">Lease</span>Hackr Discovery
+        </h1>
+        <p class="text-xs text-slate-400 mt-0.5" x-text="lastUpdated ? 'Last updated ' + lastUpdated : 'Loading data…'"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline text-xs text-slate-500">
+          <span class="font-semibold text-slate-300" x-text="vehicles.length"></span> vehicles tracked
+        </span>
+        <button
+          @click="runWorkflow()"
+          :disabled="workflowRunning"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-all
+                 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed
+                 flex items-center gap-2"
+        >
+          <svg x-show="workflowRunning" class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span x-text="workflowRunning ? workflowStepLabel() : 'Refresh Data'"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Workflow status bar -->
+  <div x-show="workflowStatus && workflowStatus.status !== 'completed'" x-cloak
+       class="bg-slate-800 border-b border-slate-700 px-4 py-2">
+    <div class="max-w-7xl mx-auto flex items-center gap-3 text-sm">
+      <span class="text-slate-400">Workflow:</span>
+      <span :class="workflowStatus?.status === 'failed' ? 'text-red-400' : 'text-yellow-400'"
+            x-text="workflowStatus?.status"></span>
+      <span class="text-slate-500" x-text="'Step ' + (workflowStatus?.steps_completed || 0) + ' / 5'"></span>
+      <div class="flex-1 h-1.5 bg-slate-700 rounded">
+        <div class="h-1.5 bg-emerald-500 rounded score-bar-fill"
+             :style="'width:' + ((workflowStatus?.steps_completed || 0) / 5 * 100) + '%'"></div>
+      </div>
+      <span x-show="workflowStatus?.error_message" class="text-red-400 text-xs truncate max-w-xs"
+            x-text="workflowStatus?.error_message"></span>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+        <p class="text-xs text-slate-400 uppercase tracking-wide">Elite (85+)</p>
+        <p class="text-2xl font-bold text-emerald-400 mt-1" x-text="countByTier(85)"></p>
+      </div>
+      <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+        <p class="text-xs text-slate-400 uppercase tracking-wide">Excellent (70–84)</p>
+        <p class="text-2xl font-bold text-blue-400 mt-1" x-text="countByTier(70, 84)"></p>
+      </div>
+      <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+        <p class="text-xs text-slate-400 uppercase tracking-wide">Good (55–69)</p>
+        <p class="text-2xl font-bold text-yellow-400 mt-1" x-text="countByTier(55, 69)"></p>
+      </div>
+      <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+        <p class="text-xs text-slate-400 uppercase tracking-wide">Vehicles Tracked</p>
+        <p class="text-2xl font-bold text-slate-200 mt-1" x-text="vehicles.length"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 mb-5">
+    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <template x-for="tab in tabs" :key="tab">
+        <button
+          @click="activeTab = tab"
+          :class="activeTab === tab
+            ? 'bg-slate-700 text-white border-slate-500'
+            : 'bg-transparent text-slate-400 border-slate-700 hover:text-slate-200 hover:border-slate-500'"
+          class="px-4 py-1.5 text-sm rounded-full border transition-all whitespace-nowrap"
+          x-text="tab"
+        ></button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div x-show="loading" class="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center text-slate-500">
+    <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <p>Loading lease opportunities…</p>
+  </div>
+
+  <div x-show="!loading && filtered.length === 0" class="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center text-slate-500">
+    No opportunities found for this filter.
+  </div>
+
+  <!-- Opportunity cards -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <template x-for="(item, idx) in filtered" :key="item.vehicle_id">
+        <div class="card-enter bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 hover:border-slate-600 transition-all">
+
+          <!-- Top row: rank + name + score badge -->
+          <div class="flex items-start gap-3 mb-3">
+            <span class="rank-badge mt-0.5 flex-shrink-0 w-7 h-7 rounded-full bg-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center"
+                  x-text="idx + 1"></span>
+            <div class="flex-1 min-w-0">
+              <h2 class="font-semibold text-slate-100 truncate"
+                  x-text="item.year + ' ' + item.make + ' ' + item.model"></h2>
+              <p class="text-xs text-slate-400 truncate" x-text="item.trim || ''"></p>
+            </div>
+            <!-- Score badge -->
+            <div class="flex-shrink-0 text-center">
+              <div :class="scoreBadgeClass(item.hackability_score)"
+                   class="w-14 h-14 rounded-xl flex flex-col items-center justify-center">
+                <span class="text-xl font-bold leading-none" x-text="item.hackability_score.toFixed(0)"></span>
+                <span class="text-xs font-medium opacity-80 mt-0.5" x-text="scoreTier(item.hackability_score)"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category + confidence row -->
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-300"
+                  x-text="item.category || 'Vehicle'"></span>
+            <span class="text-xs text-slate-500">
+              Confidence: <span :class="item.confidence_score >= 70 ? 'text-emerald-400' : item.confidence_score >= 45 ? 'text-yellow-400' : 'text-slate-400'"
+                                x-text="item.confidence_score.toFixed(0) + '%'"></span>
+            </span>
+            <template x-if="item.lease_snapshot">
+              <span class="text-xs text-slate-500">
+                <span class="text-slate-300" x-text="item.lease_snapshot.residual_percent + '%'"></span> residual ·
+                <span class="text-slate-300"
+                      x-text="'$' + (item.lease_snapshot.total_incentives || 0).toLocaleString()"></span> cash
+              </span>
+            </template>
+          </div>
+
+          <!-- Sub-score bars -->
+          <div class="space-y-1.5 mb-3">
+            <template x-for="[label, val] in subScoreEntries(item)" :key="label">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500 w-28 flex-shrink-0" x-text="label"></span>
+                <div class="flex-1 h-1.5 bg-slate-700 rounded overflow-hidden">
+                  <div class="h-1.5 rounded score-bar-fill"
+                       :class="val >= 70 ? 'bg-emerald-500' : val >= 50 ? 'bg-blue-500' : 'bg-slate-500'"
+                       :style="'width:' + val + '%'"></div>
+                </div>
+                <span class="text-xs text-slate-400 w-7 text-right" x-text="val.toFixed(0)"></span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Explanation -->
+          <p class="text-xs text-slate-400 leading-relaxed line-clamp-3"
+             x-text="item.explanation || 'No explanation available.'"></p>
+
+        </div>
+      </template>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-600">
+    <p>Data sourced from Leasehackr, Edmunds forums, and public inventory feeds. For informational use only.</p>
+    <p class="mt-1">Scores recalculate monthly. Past performance does not guarantee future lease programs.</p>
+  </footer>
+
+<script>
+function dashboard() {
+  return {
+    vehicles: [],
+    filtered: [],
+    activeTab: 'All',
+    loading: true,
+    lastUpdated: null,
+    workflowRunning: false,
+    workflowStatus: null,
+    _pollTimer: null,
+    tabs: ['All', 'EV', 'SUV', 'Luxury', 'Truck'],
+
+    async init() {
+      this.$watch('activeTab', () => this.applyFilter());
+      await this.fetchScores();
+      await this.fetchWorkflowStatus();
+    },
+
+    async fetchScores() {
+      this.loading = true;
+      try {
+        const res = await fetch('/api/scores/?limit=50');
+        if (!res.ok) throw new Error('API error ' + res.status);
+        this.vehicles = await res.json();
+        this.applyFilter();
+        if (this.vehicles.length > 0) {
+          const d = new Date(this.vehicles[0].last_updated + 'Z');
+          this.lastUpdated = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'});
+        }
+      } catch (e) {
+        console.error('Failed to fetch scores:', e);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchWorkflowStatus() {
+      try {
+        const res = await fetch('/api/workflow/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        this.workflowStatus = data;
+        if (data && data.status === 'running') {
+          this.workflowRunning = true;
+          this._pollTimer = setTimeout(() => this.fetchWorkflowStatus(), 2000);
+        } else if (data && data.status !== 'running') {
+          this.workflowRunning = false;
+        }
+      } catch (e) {
+        console.error('Failed to fetch workflow status:', e);
+      }
+    },
+
+    applyFilter() {
+      if (this.activeTab === 'All') {
+        this.filtered = this.vehicles;
+      } else {
+        this.filtered = this.vehicles.filter(v =>
+          v.category && v.category.toLowerCase().includes(this.activeTab.toLowerCase())
+        );
+      }
+    },
+
+    async runWorkflow() {
+      if (this.workflowRunning) return;
+      this.workflowRunning = true;
+      try {
+        const res = await fetch('/api/workflow/run', {method: 'POST'});
+        if (!res.ok) {
+          const err = await res.json();
+          if (res.status === 409) { alert('Workflow already running.'); this.workflowRunning = false; return; }
+          throw new Error(err.detail || 'Unknown error');
+        }
+        this._pollTimer = setInterval(async () => {
+          await this.fetchWorkflowStatus();
+          if (this.workflowStatus && this.workflowStatus.status !== 'running') {
+            clearInterval(this._pollTimer);
+            this.workflowRunning = false;
+            await this.fetchScores();
+          }
+        }, 2000);
+      } catch (e) {
+        console.error('Workflow trigger failed:', e);
+        this.workflowRunning = false;
+      }
+    },
+
+    workflowStepLabel() {
+      const steps = ['Starting…', 'Discovering vehicles…', 'Collecting programs…', 'Checking inventory…', 'Gathering deals…', 'Scoring opportunities…'];
+      const n = this.workflowStatus?.steps_completed || 0;
+      return steps[n] || 'Running…';
+    },
+
+    scoreTier(score) {
+      if (score >= 85) return 'Elite';
+      if (score >= 70) return 'Xcellent';
+      if (score >= 55) return 'Good';
+      return 'Avg';
+    },
+
+    scoreBadgeClass(score) {
+      if (score >= 85) return 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40';
+      if (score >= 70) return 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40';
+      if (score >= 55) return 'bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-500/40';
+      return 'bg-slate-700 text-slate-400';
+    },
+
+    subScoreEntries(item) {
+      return [
+        ['Residual',      item.sub_scores.residual],
+        ['Incentives',    item.sub_scores.incentive],
+        ['Dealer Disc.',  item.sub_scores.discount],
+        ['Inventory',     item.sub_scores.inventory],
+        ['Mkt Weakness',  item.sub_scores.market_weakness],
+        ['Deal Evidence', item.sub_scores.evidence],
+      ];
+    },
+
+    countByTier(min, max = 100) {
+      return this.vehicles.filter(v => v.hackability_score >= min && v.hackability_score <= max).length;
+    },
+  }
+}
+
+// Watch activeTab changes to refilter
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {});
+});
+</script>
+
+<!-- Alpine.js watch for activeTab reactivity -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const watcher = setInterval(() => {
+    if (window.Alpine) {
+      clearInterval(watcher);
+    }
+  }, 100);
+});
+</script>
+
+</body>
+</html>
