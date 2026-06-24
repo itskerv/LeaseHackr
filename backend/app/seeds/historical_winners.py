@@ -38,6 +38,13 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 10000, "base_msrp": 56395.0,
+                "residual_percent": 62.0, "money_factor": 0.00175,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _EV_NOTES_KIA,
+            },
+            {
                 "term": 24, "mileage": 10000, "base_msrp": 56395.0,
                 "residual_percent": 58.0, "money_factor": 0.00175,
                 "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
@@ -78,6 +85,13 @@ SEED_DATA = [
             "make": "Kia", "model": "EV9", "trim": "Wind RWD", "year": 2025, "category": "EV",
         },
         "lease_programs": [
+            {
+                "term": 18, "mileage": 10000, "base_msrp": 63400.0,
+                "residual_percent": 60.0, "money_factor": 0.00175,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _EV_NOTES_KIA,
+            },
             {
                 "term": 24, "mileage": 10000, "base_msrp": 63400.0,
                 "residual_percent": 56.0, "money_factor": 0.00175,
@@ -136,6 +150,13 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 10000, "base_msrp": 65400.0,
+                "residual_percent": 59.0, "money_factor": 0.00175,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _EV_NOTES_KIA,
+            },
+            {
                 "term": 24, "mileage": 10000, "base_msrp": 65400.0,
                 "residual_percent": 55.0, "money_factor": 0.00175,
                 "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
@@ -177,6 +198,13 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 10000, "base_msrp": 67400.0,
+                "residual_percent": 58.0, "money_factor": 0.00175,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _EV_NOTES_KIA,
+            },
+            {
                 "term": 24, "mileage": 10000, "base_msrp": 67400.0,
                 "residual_percent": 54.0, "money_factor": 0.00175,
                 "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
@@ -210,6 +238,13 @@ SEED_DATA = [
             "make": "Hyundai", "model": "Ioniq 9", "trim": "SE Long Range", "year": 2025, "category": "EV",
         },
         "lease_programs": [
+            {
+                "term": 18, "mileage": 10000, "base_msrp": 62995.0,
+                "residual_percent": 64.0, "money_factor": 0.00115,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Hyundai Motor Finance / Leasehackr",
+                "regional_notes": _EV_NOTES_HYU,
+            },
             {
                 "term": 24, "mileage": 10000, "base_msrp": 62995.0,
                 "residual_percent": 60.0, "money_factor": 0.00115,
@@ -263,6 +298,13 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 10000, "base_msrp": 68995.0,
+                "residual_percent": 62.0, "money_factor": 0.00115,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Hyundai Motor Finance / Leasehackr",
+                "regional_notes": _EV_NOTES_HYU,
+            },
+            {
                 "term": 24, "mileage": 10000, "base_msrp": 68995.0,
                 "residual_percent": 58.0, "money_factor": 0.00115,
                 "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
@@ -304,6 +346,13 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 10000, "base_msrp": 76995.0,
+                "residual_percent": 60.0, "money_factor": 0.00115,
+                "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+                "source": "Hyundai Motor Finance / Leasehackr",
+                "regional_notes": _EV_NOTES_HYU,
+            },
+            {
                 "term": 24, "mileage": 10000, "base_msrp": 76995.0,
                 "residual_percent": 56.0, "money_factor": 0.00115,
                 "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
@@ -338,6 +387,20 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 12000, "base_msrp": 35995.0,
+                "residual_percent": 63.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
+            {
+                "term": 24, "mileage": 12000, "base_msrp": 35995.0,
+                "residual_percent": 59.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
+            {
                 "term": 36, "mileage": 12000, "base_msrp": 35995.0,
                 "residual_percent": 55.0, "money_factor": 0.00230,
                 "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
@@ -371,6 +434,20 @@ SEED_DATA = [
             "make": "Kia", "model": "Carnival", "trim": "EX", "year": 2025, "category": "Minivan",
         },
         "lease_programs": [
+            {
+                "term": 18, "mileage": 12000, "base_msrp": 42495.0,
+                "residual_percent": 61.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
+            {
+                "term": 24, "mileage": 12000, "base_msrp": 42495.0,
+                "residual_percent": 57.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
             {
                 "term": 36, "mileage": 12000, "base_msrp": 42495.0,
                 "residual_percent": 53.0, "money_factor": 0.00230,
@@ -422,6 +499,20 @@ SEED_DATA = [
         },
         "lease_programs": [
             {
+                "term": 18, "mileage": 12000, "base_msrp": 46495.0,
+                "residual_percent": 60.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
+            {
+                "term": 24, "mileage": 12000, "base_msrp": 46495.0,
+                "residual_percent": 56.0, "money_factor": 0.00230,
+                "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_NOTES,
+            },
+            {
                 "term": 36, "mileage": 12000, "base_msrp": 46495.0,
                 "residual_percent": 52.0, "money_factor": 0.00230,
                 "lease_cash": 1500.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
@@ -454,6 +545,20 @@ SEED_DATA = [
             "make": "Kia", "model": "Carnival Hybrid", "trim": "EX HEV", "year": 2025, "category": "Minivan",
         },
         "lease_programs": [
+            {
+                "term": 18, "mileage": 12000, "base_msrp": 46495.0,
+                "residual_percent": 63.0, "money_factor": 0.00215,
+                "lease_cash": 2000.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_HEV_NOTES,
+            },
+            {
+                "term": 24, "mileage": 12000, "base_msrp": 46495.0,
+                "residual_percent": 59.0, "money_factor": 0.00215,
+                "lease_cash": 2000.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_HEV_NOTES,
+            },
             {
                 "term": 36, "mileage": 12000, "base_msrp": 46495.0,
                 "residual_percent": 55.0, "money_factor": 0.00215,
@@ -499,6 +604,20 @@ SEED_DATA = [
             "make": "Kia", "model": "Carnival Hybrid", "trim": "SX HEV", "year": 2025, "category": "Minivan",
         },
         "lease_programs": [
+            {
+                "term": 18, "mileage": 12000, "base_msrp": 50395.0,
+                "residual_percent": 61.0, "money_factor": 0.00215,
+                "lease_cash": 2000.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_HEV_NOTES,
+            },
+            {
+                "term": 24, "mileage": 12000, "base_msrp": 50395.0,
+                "residual_percent": 57.0, "money_factor": 0.00215,
+                "lease_cash": 2000.0, "loyalty_cash": 750.0, "conquest_cash": 0.0,
+                "source": "Kia Motor Finance / Edmunds forums",
+                "regional_notes": _MIN_HEV_NOTES,
+            },
             {
                 "term": 36, "mileage": 12000, "base_msrp": 50395.0,
                 "residual_percent": 53.0, "money_factor": 0.00215,
