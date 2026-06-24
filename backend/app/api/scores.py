@@ -24,6 +24,18 @@ class SubScores(BaseModel):
     evidence: float
 
 
+class TermOption(BaseModel):
+    term: int
+    mileage: int
+    residual_percent: Optional[float]
+    money_factor: Optional[float]
+    apr_equivalent: Optional[float]
+    lease_cash: Optional[float]
+    estimated_monthly: Optional[float]
+    estimated_monthly_pretax: Optional[float]
+    is_cheapest: bool = False
+
+
 class LeaseSnapshot(BaseModel):
     base_msrp: Optional[float]
     residual_percent: Optional[float]
@@ -35,6 +47,7 @@ class LeaseSnapshot(BaseModel):
     mileage: Optional[int]
     estimated_monthly: Optional[float]     # at 5% disc + WA 10.4% tax, pre-DAS
     estimated_monthly_pretax: Optional[float]
+    term_breakdown: list[TermOption] = []
 
 
 class ScoreResponse(BaseModel):
@@ -55,6 +68,21 @@ class ScoreResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+def _calc_monthly(lp, with_tax: bool) -> Optional[float]:
+    if not (lp.base_msrp and lp.residual_percent and lp.money_factor and lp.term):
+        return None
+    val = calculate_monthly_payment(
+        msrp=lp.base_msrp,
+        selling_price=lp.base_msrp * (1 - _TARGET_DISCOUNT_PCT / 100),
+        residual_percent=lp.residual_percent,
+        money_factor=lp.money_factor,
+        term=lp.term,
+        lease_cash=lp.lease_cash or 0,
+        tax_rate=_WA_TAX_RATE if with_tax else 0,
+    )
+    return round(val, 0)
 
 
 @router.get("/", response_model=list[ScoreResponse])
@@ -89,31 +117,49 @@ def list_scores(
             continue
         seen.add(vehicle.id)
 
-        lp = (
+        # Get all lease programs, de-dup by term (keep latest per term)
+        all_lps = (
             db.query(LeaseProgram)
             .filter(LeaseProgram.vehicle_id == vehicle.id)
             .order_by(LeaseProgram.program_year.desc(), LeaseProgram.program_month.desc())
-            .first()
+            .all()
         )
+        latest_by_term: dict = {}
+        for prog in all_lps:
+            if prog.term not in latest_by_term:
+                latest_by_term[prog.term] = prog
+
+        # Canonical program: prefer 36mo
+        lp = latest_by_term.get(36) or (all_lps[0] if all_lps else None)
+
         lease_snap = None
         if lp:
             total = (lp.lease_cash or 0) + (lp.loyalty_cash or 0) + (lp.conquest_cash or 0)
             apr = round((lp.money_factor or 0) * 2400, 2) if lp.money_factor else None
+            est_pretax = _calc_monthly(lp, with_tax=False)
+            est_with_tax = _calc_monthly(lp, with_tax=True)
 
-            est_pretax = None
-            est_with_tax = None
-            if lp.base_msrp and lp.residual_percent and lp.money_factor and lp.term:
-                est_pretax = calculate_monthly_payment(
-                    msrp=lp.base_msrp,
-                    selling_price=lp.base_msrp * (1 - _TARGET_DISCOUNT_PCT / 100),
-                    residual_percent=lp.residual_percent,
-                    money_factor=lp.money_factor,
-                    term=lp.term,
-                    lease_cash=lp.lease_cash or 0,
-                    tax_rate=0,
-                )
-                est_with_tax = round(est_pretax * (1 + _WA_TAX_RATE / 100), 0)
-                est_pretax = round(est_pretax, 0)
+            # Build per-term breakdown sorted by term length
+            term_options: list[TermOption] = []
+            for t, prog in sorted(latest_by_term.items()):
+                opt_pretax = _calc_monthly(prog, with_tax=False)
+                opt_with_tax = _calc_monthly(prog, with_tax=True)
+                term_options.append(TermOption(
+                    term=prog.term,
+                    mileage=prog.mileage,
+                    residual_percent=prog.residual_percent,
+                    money_factor=prog.money_factor,
+                    apr_equivalent=round((prog.money_factor or 0) * 2400, 2) if prog.money_factor else None,
+                    lease_cash=prog.lease_cash,
+                    estimated_monthly=opt_with_tax,
+                    estimated_monthly_pretax=opt_pretax,
+                ))
+
+            # Mark the term option with the lowest monthly as cheapest
+            valid = [o for o in term_options if o.estimated_monthly is not None]
+            if valid:
+                cheapest = min(valid, key=lambda o: o.estimated_monthly)
+                cheapest.is_cheapest = True
 
             lease_snap = LeaseSnapshot(
                 base_msrp=lp.base_msrp,
@@ -126,6 +172,7 @@ def list_scores(
                 mileage=lp.mileage,
                 estimated_monthly=est_with_tax,
                 estimated_monthly_pretax=est_pretax,
+                term_breakdown=term_options,
             )
 
         results.append(

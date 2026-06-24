@@ -78,12 +78,16 @@ def compute_hackability_score(vehicle_id: int, db: Session) -> "HackabilityScore
 
     now = datetime.utcnow()
 
-    # Fetch latest lease program
-    lp: Optional[LeaseProgram] = (
+    # Fetch all lease programs; use 36mo as canonical, fall back to most recent
+    all_programs = (
         db.query(LeaseProgram)
         .filter(LeaseProgram.vehicle_id == vehicle_id)
         .order_by(LeaseProgram.program_year.desc(), LeaseProgram.program_month.desc())
-        .first()
+        .all()
+    )
+    lp: Optional[LeaseProgram] = next(
+        (p for p in all_programs if p.term == 36),
+        all_programs[0] if all_programs else None,
     )
 
     # Fetch latest inventory snapshot
