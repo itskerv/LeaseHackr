@@ -21,7 +21,8 @@ log = logging.getLogger(__name__)
 WA_TAX_RATE = 10.4
 
 _EV_NOTES_KIA = (
-    "WA sales tax ~10.4%. Lease cash = federal $7,500 EV credit passed through by KMMAF. "
+    "WA sales tax ~10.4%. Lease cash = federal $7,500 EV credit + Kia manufacturer support; "
+    "total varies by trim ($12,600–$13,000). Source: Edmunds forums June 2026, zip 98033 (Kirkland WA). "
     "Conquest requires non-Kia/non-Hyundai ownership. "
     "Loyalty requires current/prior Kia ownership. "
     "Military requires active duty, NG/Reserves, or separation within 24 months. "
@@ -54,32 +55,33 @@ _MIN_HEV_NOTES = (
 # costco_cash and military_cash live here to avoid repeating across all term rows.
 
 SEED_DATA = [
-    # ── Kia EV9 Light Long Range ─────────────────────────────────────────────
+    # ── Kia EV9 Light ───────────────────────────────────────────────────────
+    # Base trim; program data estimated from Wind pattern (screenshot showed Wind/Land/GT-Line only)
     {
         "vehicle": {
-            "make": "Kia", "model": "EV9", "trim": "Light Long Range", "year": 2025, "category": "EV",
+            "make": "Kia", "model": "EV9", "trim": "Light", "year": 2026, "category": "EV",
         },
         "incentive_config": {
             "costco_cash": 1000.0,
             "military_cash": 500.0,   # active duty / NG / <24mo post-separation
         },
         "lease_programs": [
-            {"term": 18, "mileage": 10000, "base_msrp": 56395.0,
-             "residual_percent": 62.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 24, "mileage": 10000, "base_msrp": 56395.0,
-             "residual_percent": 58.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 36, "mileage": 10000, "base_msrp": 56395.0,
-             "residual_percent": 50.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 48, "mileage": 10000, "base_msrp": 56395.0,
-             "residual_percent": 42.0, "money_factor": 0.00195,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
+            {"term": 18, "mileage": 10000, "base_msrp": 57595.0,
+             "residual_percent": 68.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Kia Motor Finance / Edmunds forums Jun 2026 zip 98033 (estimated from Wind)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 24, "mileage": 10000, "base_msrp": 57595.0,
+             "residual_percent": 64.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Kia Motor Finance / Edmunds forums Jun 2026 zip 98033 (estimated from Wind)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 36, "mileage": 10000, "base_msrp": 57595.0,
+             "residual_percent": 56.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Kia Motor Finance / Edmunds forums Jun 2026 zip 98033 (estimated from Wind)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 48, "mileage": 10000, "base_msrp": 57595.0,
+             "residual_percent": 48.0, "money_factor": 0.00220,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Kia Motor Finance / Edmunds forums Jun 2026 zip 98033 (estimated from Wind)", "regional_notes": _EV_NOTES_KIA},
         ],
         "inventory": {
             "inventory_count": 35, "avg_days_on_market": 38.0,
@@ -87,38 +89,39 @@ SEED_DATA = [
         },
         "deals": [],
         "signals": [
-            "$7,500 EV credit (universal) + $500 conquest + $1,000 Costco = $9,000 for conquest+Costco buyer",
+            "$13,000 lease cash (estimated) + $500 conquest + $1,000 Costco = $14,500 best case",
             "Entry-level EV9 — broadest buyer pool",
-            "62% residual on 18mo is exceptional short-term",
+            "68% residual on 18mo exceptional for short-term flip",
         ],
     },
 
-    # ── Kia EV9 Wind RWD ────────────────────────────────────────────────────
+    # ── Kia EV9 Wind ────────────────────────────────────────────────────────
+    # Confirmed: MF 0.00194, RV 66% at 24/12mo, $13,000 lease cash (Edmunds zip 98033 Jun 2026)
     {
         "vehicle": {
-            "make": "Kia", "model": "EV9", "trim": "Wind RWD", "year": 2025, "category": "EV",
+            "make": "Kia", "model": "EV9", "trim": "Wind", "year": 2026, "category": "EV",
         },
         "incentive_config": {
             "costco_cash": 1000.0,
             "military_cash": 500.0,
         },
         "lease_programs": [
-            {"term": 18, "mileage": 10000, "base_msrp": 63400.0,
-             "residual_percent": 60.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 24, "mileage": 10000, "base_msrp": 63400.0,
-             "residual_percent": 56.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 36, "mileage": 10000, "base_msrp": 63400.0,
-             "residual_percent": 48.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 48, "mileage": 10000, "base_msrp": 63400.0,
-             "residual_percent": 40.0, "money_factor": 0.00195,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
+            {"term": 18, "mileage": 10000, "base_msrp": 64895.0,
+             "residual_percent": 70.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 24, "mileage": 10000, "base_msrp": 64895.0,
+             "residual_percent": 66.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 36, "mileage": 10000, "base_msrp": 64895.0,
+             "residual_percent": 58.0, "money_factor": 0.00194,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 48, "mileage": 10000, "base_msrp": 64895.0,
+             "residual_percent": 50.0, "money_factor": 0.00220,
+             "lease_cash": 13000.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
         ],
         "inventory": {
             "inventory_count": 48, "avg_days_on_market": 34.0,
@@ -131,44 +134,41 @@ SEED_DATA = [
             {"monthly_payment": 749.0, "msrp": 63400.0, "selling_price": 59000.0,
              "discount_percent": 6.9, "das": 3200.0, "term": 36, "mileage": 10000,
              "region": "WA", "leasehackr_score": 1.18},
-            {"monthly_payment": 780.0, "msrp": 65000.0, "selling_price": 60500.0,
-             "discount_percent": 6.9, "das": 2800.0, "term": 36, "mileage": 10000,
-             "region": "WA", "leasehackr_score": 1.20},
         ],
         "signals": [
-            "$7,500 EV credit + $500 conquest + $1,000 Costco = $9,000 for conquest+Costco buyer",
-            "48 units within 100mi of Seattle",
-            "MF 0.00175 = 4.2% APR equiv",
+            "MF 0.00194 = 4.66% APR equiv; 66% RV at 24mo confirmed WA Jun 2026",
+            "$13,000 lease cash + $500 conquest + $1,000 Costco = $14,500 best case",
             "6–7% dealer discount achievable in PNW",
         ],
     },
 
-    # ── Kia EV9 Wind AWD ────────────────────────────────────────────────────
+    # ── Kia EV9 Land (AWD) ──────────────────────────────────────────────────
+    # Confirmed: MF 0.00192, RV 65% at 24/12mo, $12,700 lease cash (Edmunds zip 98033 Jun 2026)
     {
         "vehicle": {
-            "make": "Kia", "model": "EV9", "trim": "Wind AWD", "year": 2025, "category": "EV",
+            "make": "Kia", "model": "EV9", "trim": "Land", "year": 2026, "category": "EV",
         },
         "incentive_config": {
             "costco_cash": 1000.0,
             "military_cash": 500.0,
         },
         "lease_programs": [
-            {"term": 18, "mileage": 10000, "base_msrp": 65400.0,
-             "residual_percent": 59.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 24, "mileage": 10000, "base_msrp": 65400.0,
-             "residual_percent": 55.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 36, "mileage": 10000, "base_msrp": 65400.0,
-             "residual_percent": 47.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 48, "mileage": 10000, "base_msrp": 65400.0,
-             "residual_percent": 39.0, "money_factor": 0.00195,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
+            {"term": 18, "mileage": 10000, "base_msrp": 67895.0,
+             "residual_percent": 69.0, "money_factor": 0.00192,
+             "lease_cash": 12700.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 24, "mileage": 10000, "base_msrp": 67895.0,
+             "residual_percent": 65.0, "money_factor": 0.00192,
+             "lease_cash": 12700.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 36, "mileage": 10000, "base_msrp": 67895.0,
+             "residual_percent": 57.0, "money_factor": 0.00192,
+             "lease_cash": 12700.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 48, "mileage": 10000, "base_msrp": 67895.0,
+             "residual_percent": 49.0, "money_factor": 0.00220,
+             "lease_cash": 12700.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
         ],
         "inventory": {
             "inventory_count": 28, "avg_days_on_market": 31.0,
@@ -176,33 +176,34 @@ SEED_DATA = [
         },
         "deals": [],
         "signals": [
-            "AWD premium — 1pt lower residual vs Wind RWD",
-            "$7,500 EV credit + $500 conquest + $1,000 Costco = $9,000",
+            "AWD trim — 65% RV at 24mo confirmed WA Jun 2026; 1pt lower than Wind",
+            "$12,700 lease cash + $500 conquest + $1,000 Costco = $14,200 best case",
         ],
     },
 
-    # ── Kia EV9 GT-Line RWD ─────────────────────────────────────────────────
+    # ── Kia EV9 GT-Line ─────────────────────────────────────────────────────
+    # Confirmed: MF 0.00194, RV 66% at 24/12mo, $12,600 lease cash (Edmunds zip 98033 Jun 2026)
     {
         "vehicle": {
-            "make": "Kia", "model": "EV9", "trim": "GT-Line RWD", "year": 2025, "category": "EV",
+            "make": "Kia", "model": "EV9", "trim": "GT-Line", "year": 2026, "category": "EV",
         },
         "incentive_config": {
             "costco_cash": 1000.0,
             "military_cash": 500.0,
         },
         "lease_programs": [
-            {"term": 18, "mileage": 10000, "base_msrp": 67400.0,
-             "residual_percent": 58.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 24, "mileage": 10000, "base_msrp": 67400.0,
-             "residual_percent": 54.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
-            {"term": 36, "mileage": 10000, "base_msrp": 67400.0,
-             "residual_percent": 46.0, "money_factor": 0.00175,
-             "lease_cash": 7500.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
-             "source": "Kia Motor Finance / Edmunds forums", "regional_notes": _EV_NOTES_KIA},
+            {"term": 18, "mileage": 10000, "base_msrp": 69895.0,
+             "residual_percent": 70.0, "money_factor": 0.00194,
+             "lease_cash": 12600.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 24, "mileage": 10000, "base_msrp": 69895.0,
+             "residual_percent": 66.0, "money_factor": 0.00194,
+             "lease_cash": 12600.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
+            {"term": 36, "mileage": 10000, "base_msrp": 69895.0,
+             "residual_percent": 58.0, "money_factor": 0.00194,
+             "lease_cash": 12600.0, "loyalty_cash": 1000.0, "conquest_cash": 500.0,
+             "source": "Edmunds forums Jun 2026 zip 98033 (Kirkland WA)", "regional_notes": _EV_NOTES_KIA},
         ],
         "inventory": {
             "inventory_count": 15, "avg_days_on_market": 24.0,
@@ -210,9 +211,9 @@ SEED_DATA = [
         },
         "deals": [],
         "signals": [
-            "Top EV9 — 46% residual weakest in lineup at 36mo",
-            "No 48mo program available",
-            "Limited PNW inventory reduces discount leverage",
+            "Top EV9 — 66% RV at 24mo matches Wind despite higher MSRP",
+            "No 48mo program; limited PNW inventory",
+            "$12,600 lease cash + $500 conquest + $1,000 Costco = $14,100 best case",
         ],
     },
 
@@ -553,11 +554,34 @@ def run_seed(db: Session) -> None:
     from app.models.lease_program import LeaseProgram
     from app.models.inventory import InventoryMetric
     from app.models.deal_evidence import DealEvidence
+    from app.models.score import HackabilityScore
     from app.agents.hackability_ranking import compute_hackability_score
 
     now = datetime.utcnow()
     today = date.today()
     vehicles_touched = []
+
+    # Remove stale 2025 EV9 records superseded by 2026 model year data.
+    # Also handles trim renames: "Wind RWD"→"Wind", "Wind AWD"→"Land", "GT-Line RWD"→"GT-Line".
+    _stale_ev9 = [
+        ("Kia", "EV9", "Light Long Range", 2025),
+        ("Kia", "EV9", "Wind RWD", 2025),
+        ("Kia", "EV9", "Wind AWD", 2025),
+        ("Kia", "EV9", "GT-Line RWD", 2025),
+    ]
+    for make, model, trim, year in _stale_ev9:
+        old_v = db.query(Vehicle).filter(
+            Vehicle.make == make, Vehicle.model == model,
+            Vehicle.trim == trim, Vehicle.year == year,
+        ).first()
+        if old_v:
+            db.query(HackabilityScore).filter(HackabilityScore.vehicle_id == old_v.id).delete()
+            db.query(LeaseProgram).filter(LeaseProgram.vehicle_id == old_v.id).delete()
+            db.query(InventoryMetric).filter(InventoryMetric.vehicle_id == old_v.id).delete()
+            db.query(DealEvidence).filter(DealEvidence.vehicle_id == old_v.id).delete()
+            db.delete(old_v)
+            log.info("Removed stale vehicle: %d %s %s %s", year, make, model, trim)
+    db.commit()
 
     for entry in SEED_DATA:
         v_data = entry["vehicle"]
