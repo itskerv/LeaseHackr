@@ -20,6 +20,7 @@ class LeaseProgram(Base):
     conquest_cash = Column(Float, default=0.0)
     military_cash = Column(Float, default=0.0)
     college_cash = Column(Float, default=0.0)
+    base_msrp = Column(Float, nullable=True)
     regional_notes = Column(Text, nullable=True)
     source = Column(String, nullable=True)
     source_url = Column(String, nullable=True)

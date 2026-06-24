@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./leasehackr.db")
@@ -22,3 +22,14 @@ def get_db():
 def create_tables():
     import app.models  # noqa: F401 — ensures all models are registered
     Base.metadata.create_all(bind=engine)
+    _migrate_add_column("lease_programs", "base_msrp", "REAL")
+
+
+def _migrate_add_column(table: str, column: str, col_type: str) -> None:
+    """Non-destructive: adds a column if it doesn't already exist (SQLite safe)."""
+    with engine.connect() as conn:
+        try:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+            conn.commit()
+        except Exception:
+            pass  # column already present
