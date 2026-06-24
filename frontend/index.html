@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lease Deal Discovery — Seattle</title>
+  <link rel="stylesheet" href="/vendor/tailwind.css">
+  <script defer src="/vendor/alpine.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { background-color: #0a0f1a; }
+    .bar-fill { transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+    .card { animation: fadeUp 0.35s ease forwards; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .stat-pill {
+      display: flex; flex-direction: column; align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 10px 14px; min-width: 90px;
+    }
+    .stat-pill .label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-bottom: 3px; }
+    .stat-pill .value { font-size: 18px; font-weight: 700; line-height: 1; }
+    .stat-pill .sub   { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen font-sans antialiased" x-data="dashboard()" x-init="init()" x-cloak>
+
+  <!-- ── Header ── -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold tracking-tight">
+            <span class="text-emerald-400">Lease</span>Hackr Discovery
+          </h1>
+          <span class="text-xs bg-slate-700/80 text-slate-400 px-2 py-0.5 rounded-full border border-slate-600/50">
+            Seattle · PNW
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5"
+           x-text="lastUpdated ? 'Data as of ' + lastUpdated : 'Loading…'"></p>
+      </div>
+      <button
+        @click="runWorkflow()"
+        :disabled="workflowRunning"
+        class="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500
+               disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+      >
+        <svg x-show="workflowRunning" class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span x-text="workflowRunning ? stepLabel() : 'Refresh Data'"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Workflow progress bar ── -->
+  <div x-show="workflowRunning || (workflowStatus && workflowStatus.status === 'failed')"
+       class="bg-slate-900 border-b border-slate-800 px-4 py-2">
+    <div class="max-w-5xl mx-auto flex items-center gap-3 text-xs">
+      <span class="text-slate-400" x-text="stepLabel()"></span>
+      <div class="flex-1 h-1 bg-slate-700 rounded overflow-hidden">
+        <div class="h-1 bg-emerald-500 bar-fill"
+             :style="'width:' + ((workflowStatus?.steps_completed || 0) / 5 * 100) + '%'"></div>
+      </div>
+      <span class="text-slate-500" x-text="(workflowStatus?.steps_completed || 0) + '/5'"></span>
+    </div>
+  </div>
+
+  <!-- ── Filter tabs ── -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-5 pb-1">
+    <div class="flex gap-2">
+      <template x-for="tab in tabs" :key="tab">
+        <button
+          @click="activeTab = tab"
+          :class="activeTab === tab
+            ? 'bg-slate-700 text-white border-slate-500'
+            : 'text-slate-400 border-slate-700/60 hover:text-slate-200 hover:border-slate-500'"
+          class="px-4 py-1.5 text-sm rounded-full border transition-all"
+          x-text="tab"
+        ></button>
+      </template>
+      <span class="ml-auto text-xs text-slate-500 self-center"
+            x-text="filtered.length + ' vehicle' + (filtered.length !== 1 ? 's' : '')"></span>
+    </div>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div x-show="loading" class="max-w-5xl mx-auto px-4 py-20 text-center text-slate-500">
+    <svg class="animate-spin h-7 w-7 mx-auto mb-3 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <p class="text-sm">Loading opportunities…</p>
+  </div>
+
+  <!-- ── Cards ── -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-4 pb-12 space-y-4">
+    <template x-for="(item, idx) in filtered" :key="item.vehicle_id">
+      <div class="card rounded-2xl border border-slate-700/60 overflow-hidden"
+           style="background: linear-gradient(135deg, #111827 0%, #0f172a 100%);">
+
+        <!-- ── Card header ── -->
+        <div class="px-5 pt-5 pb-4 flex items-start gap-4">
+          <!-- Rank + score -->
+          <div class="flex-shrink-0 text-center w-14">
+            <div class="text-xs text-slate-500 mb-1" x-text="'#' + (idx + 1)"></div>
+            <div :class="badgeClass(item.hackability_score)"
+                 class="w-14 h-14 rounded-xl flex flex-col items-center justify-center ring-1">
+              <span class="text-2xl font-extrabold leading-none" x-text="item.hackability_score.toFixed(0)"></span>
+              <span class="text-[9px] font-semibold uppercase tracking-wide opacity-80 mt-0.5"
+                    x-text="tier(item.hackability_score)"></span>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-1.5"
+                 x-text="item.confidence_score.toFixed(0) + '% conf'"></div>
+          </div>
+
+          <!-- Vehicle name + category + estimated monthly -->
+          <div class="flex-1 min-w-0">
+            <h2 class="text-base font-bold text-slate-100 leading-tight"
+                x-text="item.year + ' ' + item.make + ' ' + item.model"></h2>
+            <div class="flex items-center gap-2 mt-0.5">
+              <p class="text-sm text-slate-400" x-text="item.trim || ''"></p>
+              <template x-if="item.lease_snapshot?.base_msrp">
+                <span class="text-xs text-slate-600"
+                      x-text="'MSRP $' + (item.lease_snapshot.base_msrp / 1000).toFixed(1) + 'k'"></span>
+              </template>
+            </div>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600/40"
+                    x-text="item.category || 'Vehicle'"></span>
+              <template x-if="item.lease_snapshot?.estimated_monthly">
+                <span class="text-xs text-slate-400">
+                  Est.
+                  <span class="text-slate-100 font-semibold"
+                        x-text="'$' + item.lease_snapshot.estimated_monthly.toLocaleString() + '/mo'"></span>
+                  <span class="text-slate-500">(0 DAS · 5% off MSRP · WA tax · base lease cash only)</span>
+                </span>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Lease metrics bar ── -->
+        <div class="px-5 pb-4">
+          <div class="flex gap-2 overflow-x-auto pb-1">
+
+            <!-- RV -->
+            <template x-if="item.lease_snapshot?.residual_percent != null">
+              <div class="stat-pill">
+                <span class="label">RV</span>
+                <span class="value"
+                      :class="item.lease_snapshot.residual_percent >= 55 ? 'text-emerald-400' : item.lease_snapshot.residual_percent >= 50 ? 'text-yellow-400' : 'text-red-400'"
+                      x-text="item.lease_snapshot.residual_percent + '%'"></span>
+                <span class="sub" x-text="(item.lease_snapshot.term || 36) + 'mo/' + ((item.lease_snapshot.mileage || 10000)/1000).toFixed(0) + 'k'"></span>
+              </div>
+            </template>
+
+            <!-- MF / APR -->
+            <template x-if="item.lease_snapshot?.money_factor != null">
+              <div class="stat-pill">
+                <span class="label">APR Equiv</span>
+                <span class="value"
+                      :class="item.lease_snapshot.money_factor <= 0.00150 ? 'text-emerald-400' : item.lease_snapshot.money_factor <= 0.00220 ? 'text-yellow-400' : 'text-red-400'"
+                      x-text="item.lease_snapshot.apr_equivalent?.toFixed(2) + '%'"></span>
+                <span class="sub font-mono" x-text="'MF ' + item.lease_snapshot.money_factor.toFixed(5)"></span>
+              </div>
+            </template>
+
+            <!-- Cash -->
+            <template x-if="item.lease_snapshot?.total_incentives">
+              <div class="stat-pill">
+                <span class="label">Max Incentives</span>
+                <span class="value text-emerald-400"
+                      x-text="'$' + (item.lease_snapshot.total_incentives || 0).toLocaleString()"></span>
+                <span class="sub" x-text="'$' + (item.lease_snapshot.lease_cash || 0).toLocaleString() + ' universal'"></span>
+              </div>
+            </template>
+
+            <!-- Pre-tax monthly -->
+            <template x-if="item.lease_snapshot?.estimated_monthly_pretax">
+              <div class="stat-pill">
+                <span class="label">Pre-Tax</span>
+                <span class="value text-slate-200"
+                      x-text="'$' + item.lease_snapshot.estimated_monthly_pretax.toLocaleString()"></span>
+                <span class="sub">base pmt</span>
+              </div>
+            </template>
+
+          </div>
+        </div>
+
+        <!-- ── Incentive breakdown ── -->
+        <template x-if="item.lease_snapshot?.total_incentives">
+          <div class="px-5 pb-3">
+            <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Incentive Breakdown <span class="normal-case text-slate-600">(conquest ≠ loyalty; pick one)</span></p>
+            <div class="flex gap-1.5 flex-wrap">
+              <!-- Universal: always available -->
+              <template x-if="item.lease_snapshot.lease_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.lease_cash.toLocaleString()"></span>
+                  <span class="text-emerald-400/70">lease cash</span>
+                </span>
+              </template>
+              <!-- Conditional: one or more of the below -->
+              <template x-if="item.lease_snapshot.conquest_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.conquest_cash.toLocaleString()"></span>
+                  <span class="text-blue-400/70">conquest</span>
+                </span>
+              </template>
+              <template x-if="item.lease_snapshot.loyalty_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.loyalty_cash.toLocaleString()"></span>
+                  <span class="text-purple-400/70">loyalty</span>
+                </span>
+              </template>
+              <template x-if="item.lease_snapshot.military_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.military_cash.toLocaleString()"></span>
+                  <span class="text-amber-400/70">military</span>
+                </span>
+              </template>
+              <template x-if="item.lease_snapshot.costco_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-red-500/10 border border-red-500/30 text-red-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.costco_cash.toLocaleString()"></span>
+                  <span class="text-red-400/70">Costco</span>
+                </span>
+              </template>
+              <template x-if="item.lease_snapshot.college_cash">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-sky-500/10 border border-sky-500/30 text-sky-300 px-2 py-0.5 rounded-full">
+                  <span class="font-semibold" x-text="'$' + item.lease_snapshot.college_cash.toLocaleString()"></span>
+                  <span class="text-sky-400/70">college</span>
+                </span>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ── Term comparison ── -->
+        <template x-if="item.lease_snapshot?.term_breakdown?.length > 1">
+          <div class="px-5 pb-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Term Comparison <span class="normal-case text-slate-600">(5% disc · WA tax)</span></p>
+            <div class="flex gap-2 flex-wrap">
+              <template x-for="t in item.lease_snapshot.term_breakdown" :key="t.term">
+                <div :class="t.is_cheapest
+                    ? 'border-emerald-500/50 bg-emerald-500/10'
+                    : 'border-slate-600/40 bg-slate-800/50'"
+                     class="rounded-xl border px-3 py-2 flex flex-col items-center min-w-[88px] relative">
+                  <template x-if="t.is_cheapest">
+                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-full font-semibold whitespace-nowrap">lowest</span>
+                  </template>
+                  <span class="text-[10px] text-slate-400 font-medium"
+                        x-text="t.term + 'mo/' + ((t.mileage||10000)/1000).toFixed(0) + 'k'"></span>
+                  <span class="text-base font-bold mt-0.5"
+                        :class="t.is_cheapest ? 'text-emerald-300' : 'text-slate-200'"
+                        x-text="t.estimated_monthly ? '$' + t.estimated_monthly.toLocaleString() : '—'"></span>
+                  <span class="text-[10px] mt-0.5"
+                        :class="(t.residual_percent||0) >= 55 ? 'text-emerald-400' : (t.residual_percent||0) >= 50 ? 'text-yellow-400' : 'text-slate-400'"
+                        x-text="'RV ' + (t.residual_percent ?? '—') + '%'"></span>
+                  <span class="text-[10px] text-slate-500"
+                        x-text="t.money_factor ? t.money_factor.toFixed(5) : ''"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ── Sub-score breakdown ── -->
+        <div class="px-5 pb-4 space-y-1.5">
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Hackability Breakdown</p>
+          <template x-for="[label, val, weight] in subScores(item)" :key="label">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 w-32 flex-shrink-0"
+                    x-text="label + ' (' + weight + ')'"></span>
+              <div class="flex-1 h-1.5 bg-slate-700/60 rounded overflow-hidden">
+                <div class="h-1.5 rounded bar-fill"
+                     :class="val >= 70 ? 'bg-emerald-500' : val >= 45 ? 'bg-blue-500' : 'bg-slate-500'"
+                     :style="'width:' + val + '%'"></div>
+              </div>
+              <span class="text-xs text-slate-400 w-7 text-right tabular-nums"
+                    x-text="val.toFixed(0)"></span>
+            </div>
+          </template>
+        </div>
+
+        <!-- ── Explanation ── -->
+        <div class="px-5 pb-5 border-t border-slate-700/40 pt-3">
+          <p class="text-xs text-slate-400 leading-relaxed" x-text="item.explanation"></p>
+        </div>
+
+      </div>
+    </template>
+  </main>
+
+  <footer class="border-t border-slate-800/60 py-5 text-center text-xs text-slate-600">
+    <p>Scores computed from lease program data, Seattle-area inventory, and confirmed signed deals.</p>
+    <p class="mt-0.5">Estimated monthly assumes $0 DAS (first payment only), 5% dealer discount off MSRP, WA 10.4% sales tax, and universal lease cash applied as cap cost reduction. Acquisition fee (~$995) and doc fee not included (add ~$30–40/mo effective). Conquest, Costco, or loyalty cash would reduce the monthly further.</p>
+    <p class="mt-0.5">Not financial advice. Always verify current programs with your dealer or a Leasehackr broker.</p>
+  </footer>
+
+<script>
+function dashboard() {
+  return {
+    vehicles: [],
+    filtered: [],
+    activeTab: 'All',
+    loading: true,
+    lastUpdated: null,
+    workflowRunning: false,
+    workflowStatus: null,
+    _pollId: null,
+    tabs: ['All', 'EV', 'Minivan'],
+
+    async init() {
+      this.$watch('activeTab', () => this.applyFilter());
+      await this.fetchScores();
+      await this.fetchWorkflowStatus();
+    },
+
+    async fetchScores() {
+      this.loading = true;
+      try {
+        const r = await fetch('/api/scores/?limit=20');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        this.vehicles = await r.json();
+        this.applyFilter();
+        if (this.vehicles.length > 0) {
+          const d = new Date(this.vehicles[0].last_updated + 'Z');
+          this.lastUpdated = d.toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+        }
+      } catch (e) {
+        console.error('Score fetch failed:', e);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchWorkflowStatus() {
+      try {
+        const r = await fetch('/api/workflow/status');
+        if (!r.ok) return;
+        const d = await r.json();
+        this.workflowStatus = d;
+        if (d?.status === 'running') {
+          this.workflowRunning = true;
+          clearTimeout(this._pollId);
+          this._pollId = setTimeout(() => this.fetchWorkflowStatus(), 2000);
+        } else {
+          this.workflowRunning = false;
+        }
+      } catch (e) {}
+    },
+
+    applyFilter() {
+      if (this.activeTab === 'All') {
+        this.filtered = this.vehicles;
+      } else {
+        this.filtered = this.vehicles.filter(v =>
+          (v.category || '').toLowerCase().includes(this.activeTab.toLowerCase())
+        );
+      }
+    },
+
+    async runWorkflow() {
+      if (this.workflowRunning) return;
+      this.workflowRunning = true;
+      try {
+        const r = await fetch('/api/workflow/run', { method: 'POST' });
+        if (r.status === 409) { this.workflowRunning = false; return; }
+        clearInterval(this._pollId);
+        this._pollId = setInterval(async () => {
+          await this.fetchWorkflowStatus();
+          if (this.workflowStatus?.status !== 'running') {
+            clearInterval(this._pollId);
+            this.workflowRunning = false;
+            await this.fetchScores();
+          }
+        }, 2000);
+      } catch (e) {
+        this.workflowRunning = false;
+      }
+    },
+
+    stepLabel() {
+      const steps = ['Starting…', 'Discovering vehicles…', 'Collecting programs…',
+                     'Checking inventory…', 'Gathering deals…', 'Scoring…'];
+      return steps[this.workflowStatus?.steps_completed || 0] || 'Running…';
+    },
+
+    tier(s) {
+      if (s >= 85) return 'Elite';
+      if (s >= 70) return 'Good';
+      if (s >= 55) return 'Fair';
+      return 'Weak';
+    },
+
+    badgeClass(s) {
+      if (s >= 85) return 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40';
+      if (s >= 70) return 'bg-blue-500/20 text-blue-300 ring-blue-500/40';
+      if (s >= 55) return 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40';
+      return 'bg-slate-700/60 text-slate-400 ring-slate-600/40';
+    },
+
+    subScores(item) {
+      const s = item.sub_scores;
+      return [
+        ['Residual strength', s.residual,       '25%'],
+        ['Incentive depth',   s.incentive,       '25%'],
+        ['Dealer discount',   s.discount,        '20%'],
+        ['Inventory pressure',s.inventory,       '15%'],
+        ['Market weakness',   s.market_weakness, '10%'],
+        ['Deal evidence',     s.evidence,        '5%'],
+      ];
+    },
+  };
+}
+</script>
+
+</body>
+</html>
